@@ -38,16 +38,24 @@ UNC is **1.35x faster** while using **25% less GPU power**, resulting in **1.7x 
 ```
 HuggingFace model
        |
-  [ Frontend ]     Parse config.json + safetensors → IR graph
+  [ Frontend ]        Parse config.json + safetensors
        |
-  [ Compiler ]     Optimization passes: fusion, quantization, memory planning
+  [ IR Graph ]        Hardware-agnostic tensor graph
        |
-  [ Metal emit ]   Objective-C orchestrator + custom Metal kernels
+  [ Compiler ]        Fusion, quantization, memory planning
        |
-  Native binary    Standalone Mach-O (AOT) or .unc bundle (JIT)
+       +------------------+------------------+------------------+
+       |                  |                  |                  |
+  [ Metal ]          [ CUDA ]          [ ROCm ]          [ WASM ]
+  Obj-C + Metal      PTX kernels       HIP kernels       WebGPU shaders
+  shaders            (planned)         (planned)         (planned)
+       |
+  Native binary
+  Mach-O (AOT) or
+  .unc bundle (JIT)
 ```
 
-**IR**: Typed tensor graph with `BatchMatMul`, `QuantizedMatVec`, `RMSNorm`, `LayerNorm`, `QKNorm`, `RoPE`, `SDPA`, `SwiGLU`, `KVCacheAppend`, `Gather`, etc.
+**IR**: Hardware-agnostic typed tensor graph with `BatchMatMul`, `QuantizedMatVec`, `RMSNorm`, `LayerNorm`, `QKNorm`, `RoPE`, `SDPA`, `SwiGLU`, `KVCacheAppend`, `Gather`, etc. The IR is target-independent — the same graph can be lowered to Metal (current), CUDA, ROCm, WASM, or CPU-only backends with acceleration providers like Intel oneDNN.
 
 **Compiler passes**: Weight binding, dead code elimination, QKV fusion, Gate+Up fusion, SwiGLU fusion, Add+RMSNorm fusion, RoPE+KV fusion, PSQ pipeline, dual-path (GEMM/GEMV), kernel matching, barrier analysis, memory planning with buffer aliasing.
 
